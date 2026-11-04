@@ -31,6 +31,7 @@ BASE = "https://www.watchfreeplus.com"
 LIST_URL = f"{BASE}/live-tv-channels"
 GROUP_TITLE = "Fast Vizio"  # every channel gets this group-title
 OUT_NAME = "Vizio"
+EPG_URL = "https://github.com/demonlive-SAS/Test2/raw/refs/heads/main/Vizio.xml.gz"
 CACHE_FILE = Path("channels_cache.json")
 USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
@@ -173,7 +174,7 @@ def load_cache():
 
 
 def write_m3u(channels, path):
-    lines = ["#EXTM3U"]
+    lines = [f'#EXTM3U url-tvg="{EPG_URL}" x-tvg-url="{EPG_URL}"']
     for ch in channels:
         tvg_id = f"vizio.{ch['id']}"
         name = ch["name"].replace(",", " ")
