@@ -1,0 +1,47 @@
+name: Update Vizio playlist
+
+on:
+  schedule:
+    # GitHub cron is UTC. 9:00 PM CST = 03:00 UTC, then every 4 hours:
+    # 9pm, 1am, 5am, 9am, 1pm, 5pm (CST)
+    - cron: "0 3,7,11,15,19,23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vizio-update
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Build Vizio.m3u and Vizio.xml.gz
+        run: python vizio_scraper.py
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Vizio.m3u Vizio.xml.gz channels_cache.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update Vizio playlist $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
